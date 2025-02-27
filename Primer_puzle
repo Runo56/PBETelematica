@@ -1,0 +1,13 @@
+require 'i2c/driver/lcd'
+
+END {
+	puts "El puzle 1 de PBE ha finalitzat"
+}
+BEGIN{
+	puts "Introdueix un text que es mostrarÃ  a la pantalla: "
+	text = gets.chomp
+	display = I2C::Drivers::LCD::Display.new('/dev/i2c-1', 0x27, rows=20, cols=4)
+	display.clear
+	display.text(text)
+
+}
