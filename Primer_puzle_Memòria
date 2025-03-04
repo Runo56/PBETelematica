@@ -1,0 +1,136 @@
+PBE: Manual complet Primer Puzzle
+
+En aquesta memòria s’intenta programar sobre un perifèric LCD amb el llenguatge de programació Ruby. Hi ha hagut diversos problemes que no han permès acabar el puzle.
+
+Preparar la targeta SD
+
+En primer lloc, per a connectar la Raspberry a l’ordinador, amb ajuda del programa Raspberry PI Imagine s’ha descarregat i carregat la targeta SD amb el sistema operatiu de 64-BIT i, en un principi s’ha intentat fer la connexió per cable Ethernet, però com que el portàtil no l’acceptava, s’ha configurat un wifi amb un punt d’accés al mòbil. Per tant, també s’ha inclòs la SSID i la contrasenya del punt d’accés. Finalment, s’ha carregat a la targeta SD.
+
+Trobar IP Raspberry
+
+Una vegada carregada la tarrgeta SD s’introdueix a la placa i s’alimenta perquè s’encengui. En aquest moment, la placa automàticament es connecta al punt d’accés i és necessari trobar quina IP se li ha atribuït. 
+
+Per a trobar la IP, des del portàtil a configuracions he pogut trobar la IP pròpia assignada al portàtil pel punt d’accés i la màscara. D’aquesta forma, al programa Angry IP Scanner, introduint la IP i la màscara fa una cerca dels hosts conectats al router. D’aquests, un és el propi portàtil amb la mateixa IP i l’altre és la raspberry.
+
+Connectar-nos a la Raspberry
+
+Després de provar varis programes per a connectar-se, s’ha fet mitjançant una extensió de Chrome “Secure Shell” on, després d'introduir la IP de la raspberry es connecta al ficar la contrasenya. En aquest moment, ja tenim accés a la terminal.
+
+Des d’allà, per a connectar la pantalla, s’introdueix “sudo raspi-config” on , a “interface options”, s’activa el VNC. Més tard, amb ajuda del programa VNC Viewer, introduïda la IP del dispositiu, l’usuari i contrasenya és possible connectar-me a la placa
+
+Connectar visualitzador LCD
+
+En un primer lloc, s’ha realitzat la connexió física amb els pins. Primer, he investigat quin tipus de perifèric tinc, que era un 2004A, però perquè sigui compatible amb una rapsberry, com que hi ha una diferència de 3,3-5V d’alimentació i la lcd té molts pins, ja venia soldat amb un “I2C Expender Module PCF8574”. 
+
+Després, s’han connectat els següents pins:
+
+
+Després, des de la terminal de la raspberry, es torna a introduir “sudo raspi-config” per a activar la connexió i2c. Per a confirmar que estava realitzada de forma correcta, s’ha instal·lat: 
+sudo apt-get install -y i2c-tools
+
+Després, per a verificar que el lcd està disponible:
+	ls /dev/i2c*
+
+On s’ha observat que es podia trobar /dev/lcd-1 i per tant estava accessible.
+
+Finalment, per a acabar de confirmar i veure a quina adreça estava conectat s’ha escrit: 
+	sudo i2cdetect -y 1
+
+
+Aquí s’ha pogut veure que estava connectat a la adreça 0x27, l'única oberta.
+
+
+Llibreries utilitzades
+
+Per a intentar programar al perifèric que m’ha tocat, la pantalla lcd, he cercat les llibreries necessàries. 
+
+En un primer lloc, s’ha intentat utilitzar la llibreria “i2c-lcd”, però no ha sigut possible la seva instal·lació. En un primer lloc, la instal·lació normal amb “sudo gem install i2c-lcd”, però al córrer el codi no trobava la llibreria. Investigant, tot i que si que estava instalada, ja que sortia en fer “gem list | grep i2c-lcd”, no s’havia instal·lat correctament, ja que al fer “gem which i2c-lcd” per a trobar la seva ruta no existia. S’ha provat de desinstal·lar i tornar a instal·lar, reiniciar la Raspberry, tornar a reescriure la targeta SD amb un sistema operatiu nou, revisar les versiones de ruby i la biblioteca i, finalment, dins el codi introduir: “$LOAD_PATH.unshift('/var/lib/gems/3.1.0/gems/i2c-lcd-1.0.0/lib')”  per a carregar la ruta. Igualment, cap dels intents a funcionat.
+
+Per tant, s’ha intentat amb una altra biblioteca més general de i2c. Amb aquesta ha estat necessari definir funcions dis el mateix codi per a inicialitzar la LCD i escriure. Tot i així, tampoc ha funcionat. Després de corregir el codi perquè corri després de trobar problemes per pins no ben connectats o altres, al codi ha corregut, però a la pantalla no ha aparegut cap text. 
+
+S’ha revisat la connexió amb el display. Desconec si el codi no és correcte i les  o si la connexió no està ben feta, però més que provar un altre display que no tenc o intentar poder utilitzar una biblioteca que no he trobat més ben adaptada al lcd per evitar haver de crear les funcions d'inicialitzar i escriure, desconec com acabar de solucionar els problemes.
+
+Problemes trobats
+
+A més dels problemes ja explicats com els de les biblioteques, que no ha permès acabar el primer puzle, també hi han hagut altres problemes amb la configuració inicial, sobretot, perquè el meu portàtil és un Chromebook amb ChromeOS i una màquina virtual de Linux Penguin basat en Debian. Això ha provocat que, al cercar programes s’han hagut d'intentar molts.
+
+En un primer lloc, el Raspberry PI Imagine per a carregar la tarjetaSD, tot i que era possible descarregar-la per Linux, no operava de forma correcta. Per tant, s’ha hagut de fer des de l'ordinador de taula amb Windows. 
+
+A més, en un principi, en introduir el sistema operatiu a la targeta SD la raspberry no s’ha connectat correctament. Després d’analitzar, s’ha observat que a la targeta SD encara quedaven fitxers antics que no es podien eliminar i la targeta SD no es podia reformatejar, per tant, es va comprar una altra nova que va funcionar correctament.
+
+Després, com s’ha comentat, en un principi la intenció era connectar per Ethernet, però amb un adaptador Ethernet-USB l'ordinador no acaba de connectar-se i no detectava correctament la raspberry. Per tant, s’ha acabat fent per punt d’accés al mòbil.
+
+Per a conectar-se mitjançant SSH s’ha intentat mitjançant programes com Putty o altres, però no ha funcionat. El mateix Chromebook permet connectar-se, però requereix activar el mode de desenvolupador, que requereix reformatejar tot el portàtil, així que després de cercar s’ha trobat l'extensió de Chrome que ha funcionat correctament.
+
+Codi
+
+Amb la biblioteca i2c-lcd
+require 'i2c/driver/lcd'
+
+END {
+	puts "El puzle 1 de PBE ha finalitzat"
+}
+BEGIN{
+	puts "Introdueix un text que es mostrarÃ  a la pantalla: "
+	text = gets.chomp
+	display = I2C::Drivers::LCD::Display.new('/dev/i2c-1', 0x27, rows=20, cols=4)
+	display.clear
+	display.text(text)
+
+}
+
+
+Amb la biblioteca i2c
+
+
+require 'i2c'
+
+# Adreça I2C del dispositiu LCD
+lcd_address = 0x27
+
+# Inicialització de l'I2C
+i2c = I2C.create('/dev/i2c-1')
+
+# Funció per inicialitzar l'LCD
+def init_lcd(i2c, lcd_address)
+  # Comandes per inicialitzar el LCD
+  i2c.write(lcd_address, "\x33")  # 8-bit mode
+  sleep(0.005)
+  i2c.write(lcd_address, "\x32")  # 4-bit mode
+  sleep(0.005)
+  i2c.write(lcd_address, "\x28")  # Configura el mode 4-bits
+  sleep(0.005)
+  i2c.write(lcd_address, "\x0C")  # Pantalla encesa, sense cursor
+  sleep(0.005)
+  i2c.write(lcd_address, "\x06")  # Cursor desplaçat
+  sleep(0.005)
+  i2c.write(lcd_address, "\x01")  # Esborra la pantalla
+  sleep(0.005)
+end
+
+# Funció per escriure a l'LCD
+def write_lcd(i2c, lcd_address, text)
+  text.each_char do |char|
+    # Envia cada caràcter
+    i2c.write(lcd_address, "\x40")  # Control byte per escriure
+    i2c.write(lcd_address, char)
+  end
+end
+
+# Inicialitza l'LCD
+init_lcd(i2c, lcd_address)
+
+puts "Introdueix un text que es mostrarÃ  a la pantalla: "
+text = gets.chomp
+
+# Escriu el text a l'LCD
+write_lcd(i2c, lcd_address, text)
+
+# Espera uns segons per veure el text
+sleep(5)
+
+
+
+
+
+
