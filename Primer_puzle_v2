@@ -1,0 +1,45 @@
+require 'i2c'
+
+# Adreça I2C del dispositiu LCD
+lcd_address = 0x27
+
+# Inicialització de l'I2C
+i2c = I2C.create('/dev/i2c-1')
+
+# Funció per inicialitzar l'LCD
+def init_lcd(i2c, lcd_address)
+  # Comandes per inicialitzar el LCD
+  i2c.write(lcd_address, "\x33")  # 8-bit mode
+  sleep(0.005)
+  i2c.write(lcd_address, "\x32")  # 4-bit mode
+  sleep(0.005)
+  i2c.write(lcd_address, "\x28")  # Configura el mode 4-bits
+  sleep(0.005)
+  i2c.write(lcd_address, "\x0C")  # Pantalla encesa, sense cursor
+  sleep(0.005)
+  i2c.write(lcd_address, "\x06")  # Cursor desplaçat
+  sleep(0.005)
+  i2c.write(lcd_address, "\x01")  # Esborra la pantalla
+  sleep(0.005)
+end
+
+# Funció per escriure a l'LCD
+def write_lcd(i2c, lcd_address, text)
+  text.each_char do |char|
+    # Envia cada caràcter
+    i2c.write(lcd_address, "\x40")  # Control byte per escriure
+    i2c.write(lcd_address, char)
+  end
+end
+
+# Inicialitza l'LCD
+init_lcd(i2c, lcd_address)
+
+puts "Introdueix un text que es mostrarÃ  a la pantalla: "
+text = gets.chomp
+
+# Escriu el text a l'LCD
+write_lcd(i2c, lcd_address, text)
+
+# Espera uns segons per veure el text
+sleep(5)
