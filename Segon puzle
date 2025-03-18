@@ -1,0 +1,63 @@
+require 'gtk3'
+require_relative 'puzzle1'  # Que estigui al mateix directori
+
+class LCDApp
+  def initialize
+    @builder = Gtk::Builder.new
+    @builder.add_from_string(UI_DEFINITION)
+
+    # Obtener widgets
+    @window = @builder.get_object("main_window")
+    @textview = @builder.get_object("textview")
+    @button = @builder.get_object("button_display")
+
+    # Conectar eventos
+    @button.signal_connect("clicked") { display_text }
+
+    # Mostrar la ventana
+    @window.signal_connect("destroy") { Gtk.main_quit }
+    @window.show_all
+  end
+
+  def display_text
+    buffer = @textview.buffer
+    text = buffer.text.strip
+    return if text.empty?
+
+    # Enviar texto al LCD
+    display = I2C::Drivers::LCD::Display.new('/dev/i2c-1', 0x27, rows=20, cols=4)
+    display.clear
+    display.text(text)
+  end
+
+  def run
+    Gtk.main
+  end
+
+  UI_DEFINITION = <<-UI
+    <interface>
+      <requires lib="gtk+" version="3.0"/>
+      <object class="GtkWindow" id="main_window">
+        <property name="title">LCD Display</property>
+        <property name="default_width">300</property>
+        <property name="default_height">200</property>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkTextView" id="textview"/>
+            </child>
+            <child>
+              <object class="GtkButton" id="button_display">
+                <property name="label">Display</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </interface>
+  UI
+end
+
+app = LCDApp.new
+app.run
