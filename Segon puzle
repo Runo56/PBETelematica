@@ -1,8 +1,10 @@
 require 'gtk3'
-require_relative 'Puzle1'  # Asegúrate de que Puzle1.rb está en el mismo directorio
+require_relative 'puzzle1'  # Asegúrate de que puzzle1.rb está en el mismo directorio
+require 'i2c/drivers/lcd'
 
 class LCDApp
   def initialize
+    Gtk.init
     @builder = Gtk::Builder.new
     @builder.add_from_string(UI_DEFINITION)
 
@@ -24,10 +26,14 @@ class LCDApp
     text = buffer.text.strip
     return if text.empty?
 
-    # Enviar texto al LCD
-    display = I2C::Drivers::LCD::Display.new('/dev/i2c-1', 0x27, rows=20, cols=4)
-    display.clear
-    display.text(text, 0, 0)  # Ahora se pasa la fila y columna correctamente
+    begin
+      # Enviar texto al LCD
+      display = I2C::Drivers::LCD::Display.new('/dev/i2c-1', 0x27, 20, 4)
+      display.clear
+      display.text(text, 0, 0)  # Ahora se pasa la fila y columna correctamente
+    rescue => e
+      puts "Error al enviar texto al LCD: #{e.message}"
+    end
   end
 
   def run
