@@ -1,4 +1,4 @@
-require 'i2c/driver/lcd'
+require 'i2c/drivers/lcd'
 
 END {
 	puts "El puzle 1 de PBE ha finalitzat"
